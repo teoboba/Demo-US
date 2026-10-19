@@ -1,58 +1,67 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Demo-US
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Demo-US è un'applicazione web di annunci sviluppata come progetto di esercitazione con Laravel. Gli utenti possono pubblicare annunci; un revisore può approvarli o rifiutarli prima che compaiano nelle pagine pubbliche.
 
-## About Laravel
+## Funzionalità
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- Registrazione e accesso degli utenti.
+- Creazione di annunci con titolo, prezzo, descrizione, categoria e immagini.
+- Elenco degli annunci approvati, pagina di dettaglio, filtro per categoria e ricerca testuale.
+- Area revisore per approvare o rifiutare gli annunci in attesa.
+- Elaborazione delle immagini tramite job in coda: copertura dei volti, ridimensionamento e analisi con Google Cloud Vision. Questa parte richiede credenziali Google Cloud configurate localmente.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Tecnologie
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+PHP 8.3+, Laravel 13, Blade, Livewire, Bootstrap, Vite, Laravel Fortify e Laravel Scout con TNTSearch. La configurazione di esempio usa SQLite e la coda su database.
 
-## Learning Laravel
+## Avvio in locale
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+Servono PHP 8.3 o successivo con supporto SQLite, Composer, Node.js e npm.
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+git clone https://github.com/Teo-Nesich/Demo-US.git
+cd Demo-US
+composer install
+php -r "file_exists('.env') || copy('.env.example', '.env');"
+php -r "file_exists('database/database.sqlite') || touch('database/database.sqlite');"
+php artisan key:generate
+php artisan migrate --seed
+php artisan storage:link
+npm install
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Avvia il server Laravel e Vite in due terminali separati:
 
-## Contributing
+```bash
+php artisan serve
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+npm run dev
+```
 
-## Code of Conduct
+Apri l'indirizzo mostrato da `php artisan serve` (di norma `http://127.0.0.1:8000`). Il seeder crea le categorie iniziali; puoi quindi registrare un account e pubblicare un annuncio.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Elaborazione delle immagini
 
-## Security Vulnerabilities
+Il caricamento di immagini avvia job che usano Google Cloud Vision. Per eseguirli, configura le credenziali del servizio nel file locale `google_credential.json` nella radice del progetto e avvia un worker in un altro terminale:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan queue:work
+```
 
-## License
+Non inserire le credenziali nel repository. Senza questa configurazione, puoi provare il flusso degli annunci senza immagini, ma i job di elaborazione delle immagini non andranno a buon fine.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Test
+
+```bash
+php artisan test
+```
+
+## Struttura del progetto
+
+- `app/Livewire/CreateAnnouncement.php`: form di creazione degli annunci e caricamento immagini.
+- `app/Http/Controllers/AnnouncementController.php`: elenco, dettaglio e categorie.
+- `app/Http/Controllers/PublicController.php`: homepage e ricerca.
+- `app/Http/Controllers/RevisorController.php`: approvazione e rifiuto degli annunci.
+- `app/Jobs/`: elaborazione delle immagini in coda.
